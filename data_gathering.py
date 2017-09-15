@@ -7,8 +7,7 @@ import os
 INTERVAL_S = 3 * 60
 ONLINE_POSTFIX = "@ONLINE"
 PLATFORM_POSTFIX = "@PLATFORM"
-LAST_SEEN_POSTFIX = "@LAST_SEEN"
-NOT_AVALIABLE = "NA"
+NOT_AVAILABLE = "NA"
 DIR_NAME = 'data'
 
 
@@ -46,7 +45,7 @@ class OnlineGatherer:
         self.watch_list = [target_id_for_list] + self.vkapi.friends.get(user_id=target_id, order='hints')
 
     def get_targets_online(self):
-        return self.vkapi.users.get(user_ids=self.watch_list, fields='last_seen, online')
+        return self.vkapi.users.get(user_ids=self.watch_list, fields='id, last_seen, online')
 
 
 def main():
@@ -61,9 +60,9 @@ def main():
     users = gatherer.get_targets_online()
     header_row = ['timestamp']
     for info in users:
-        name = '{} {}'.format(info['first_name'], info['last_name'])
+        name = '{}'.format(info['uid'])
         name += '{}'
-        header_row.extend([name.format(ONLINE_POSTFIX), name.format(PLATFORM_POSTFIX), name.format(LAST_SEEN_POSTFIX)])
+        header_row.extend([name.format(ONLINE_POSTFIX), name.format(PLATFORM_POSTFIX)])
     with open(file_name, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(header_row)
@@ -71,9 +70,8 @@ def main():
     while True:
         row = [round(datetime.datetime.now().timestamp())]
         for info in users:
-            row.append(info.get('online', NOT_AVALIABLE))
-            row.append(info.get('last_seen', {}).get('platform', NOT_AVALIABLE))
-            row.append(info.get('last_seen', {}).get('time', NOT_AVALIABLE))
+            row.append(info.get('online', NOT_AVAILABLE))
+            row.append(info.get('last_seen', {}).get('platform', NOT_AVAILABLE))
         with open('{}/{} started {}.csv'.format(DIR_NAME, gatherer.watch_list[0], start_time), 'a', newline='') as f:
             writer = csv.writer(f)
             writer.writerow(row)
