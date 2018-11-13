@@ -4,6 +4,10 @@ import time
 import vk
 import os
 
+# to save error messages
+# python3 data_gathering.py 2> error
+
+
 INTERVAL_S = 3 * 60
 ONLINE_POSTFIX = "@ONLINE"
 PLATFORM_POSTFIX = "@PLATFORM"
@@ -38,14 +42,14 @@ class OnlineGatherer:
         if not target_id:
             if not self.user_id:
                 raise RuntimeError("You are not logged in and did not specified target ID. Exiting.\n")
-            target_id_for_list = self.vkapi.account.getProfileInfo()['screen_name']
+            target_id_for_list = self.vkapi.account.getProfileInfo(v='5.87')['screen_name']
             target_id = self.user_id
         else:
             target_id_for_list = target_id
-        self.watch_list = [target_id_for_list] + self.vkapi.friends.get(user_id=target_id, order='hints')
+        self.watch_list = [target_id_for_list] + self.vkapi.friends.get(user_id=target_id, order='hints', v='5.87')['items']
 
     def get_targets_online(self):
-        return self.vkapi.users.get(user_ids=self.watch_list, fields='id, last_seen, online')
+        return self.vkapi.users.get(user_ids=self.watch_list, fields='id, last_seen, online', v='5.87')
 
 
 def main():
@@ -60,7 +64,7 @@ def main():
     users = gatherer.get_targets_online()
     header_row = ['timestamp']
     for info in users:
-        name = '{}'.format(info['uid'])
+        name = '{}'.format(info['id'])
         name += '{}'
         header_row.extend([name.format(ONLINE_POSTFIX), name.format(PLATFORM_POSTFIX)])
     with open(file_name, 'w', newline='') as f:
